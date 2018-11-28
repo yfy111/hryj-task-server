@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.UserStatisMapper">
+
+
+    <!-- 统计员工推荐注册用户数 -->
+    <select id="statisStaffReferralRegisterNum" resultType="java.util.Map">
+        SELECT
+            COUNT(uui.id) AS user_num
+        FROM
+            u_user_info uui
+        WHERE
+            uui.staff_id = #{staff_id}
+        AND DATE_FORMAT(uui.create_time, '%Y-%m-%d') = #{statis_date}
+    </select>
+
+    <!-- 统计门店推荐注册用户数 -->
+    <select id="statisStoreReferralRegisterNum" resultType="java.util.Map">
+        SELECT
+            COUNT(uui.id) AS user_num
+        FROM
+            u_user_info uui
+        WHERE
+            uui.store_id = #{store_id}
+        AND DATE_FORMAT(uui.create_time, '%Y-%m-%d') = #{statis_date}
+    </select>
+</mapper>

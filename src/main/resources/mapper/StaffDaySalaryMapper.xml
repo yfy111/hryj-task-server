@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.StaffDaySalaryMapper">
+    <!-- 计算员工当月工资成本 -->
+    <select id="calStaffMonthSalary" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(psds.day_salary),0) AS month_salary_amt
+        FROM
+            pr_staff_day_salary psds
+        WHERE
+            psds.staff_id = #{staff_id}
+        AND psds.salary_date LIKE CONCAT(#{balance_month},'%')
+    </select>
+
+    <!-- 计算门店当月工资成本 -->
+    <select id="calStoreMonthSalary" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(psds.day_salary),0) AS month_salary_amt
+        FROM
+            pr_staff_day_salary psds
+        WHERE
+            psds.dept_id = #{store_id}
+        AND psds.salary_date LIKE CONCAT(#{balance_month},'%')
+    </select>
+
+    <!-- 计算区域公司当天的工资成本，不包含门店仓库 -->
+    <select id="calRegionDaySalary" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(psds.day_salary),0) AS day_salary_amt
+        FROM
+            pr_staff_day_salary psds
+        WHERE psds.dept_type = '03'
+        AND psds.region_id = #{region_id}
+        AND psds.salary_date = #{cal_date}
+    </select>
+
+    <!-- 计算门店当天的工资成本(关店的门店不算工资成本) -->
+    <select id="calStoreDaySalary" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(psds.day_salary),0) AS day_salary_amt
+        FROM
+            pr_staff_day_salary psds, backup_dept_group bdg
+        WHERE psds.dept_id = bdg.dept_id
+        AND bdg.dept_status = 1
+        AND bdg.backup_date = #{cal_date}
+        AND psds.dept_type = '01'
+        AND psds.dept_id = #{store_id}
+        AND psds.salary_date = #{cal_date}
+    </select>
+</mapper>

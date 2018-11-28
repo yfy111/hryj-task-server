@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.OrderProductMapper">
+
+    <select id="findOrderProdByCondition" parameterType="Map" resultType="com.hryj.entity.bo.order.OrderProduct">
+        select data_table.party_id, data_table.product_id, sum(data_table.quantity) as quantity
+        from (
+            select t1.party_id, t1.product_id, t1.quantity
+            FROM o_order_product t1
+            INNER JOIN o_order_info t2 on t1.order_id = t2.id
+            <where>
+                <if test="order_status != null">
+                    t2.order_status = #{order_status}
+                </if>
+                <if test="date_time_begin != null">
+                    and t2.pay_time &gt;= #{date_time_begin}
+                </if>
+                <if test="date_time_end != null">
+                    and t2.pay_time &lt;= #{date_time_end}
+                </if>
+                <if test="party_id != null">
+                    and t1.party_id = #{party_id}
+                </if>
+            </where>
+        ) data_table
+        group by data_table.party_id, data_table.product_id
+    </select>
+
+    <select id="findOrderProdReturnedData" parameterType="Map" resultType="com.hryj.entity.bo.order.OrderProduct">
+        select data_table.party_id, data_table.product_id, sum(data_table.quantity) as quantity
+        from (
+            SELECT t1.return_quantity as quantity, t2.party_id, t2.product_id
+            from o_return_product t1
+            left join o_order_product t2 on t1.order_product_id = t2.id
+            left join o_order_return t3 on t1.return_id = t3.id
+            <where>
+                t3.return_status = '03'
+                <if test="date_time_begin != null">
+                    and t3.update_time &gt;= #{date_time_begin}
+                </if>
+                <if test="date_time_end != null">
+                    and t2.update_time &lt;= #{date_time_end}
+                </if>
+            </where>
+        ) data_table
+        <where>
+            <if test="party_id != null">
+                data_table.party_id = #{party_id}
+            </if>
+        </where>
+        GROUP BY data_table.party_id, data_table.product_id
+    </select>
+
+    <select id="findFinishedOrderProductData" parameterType="Map" resultType="com.hryj.entity.bo.order.OrderProduct">
+        select data_table.party_id, data_table.product_id, SUM(data_table.quantity) as quantity
+        from (
+            SELECT t1.party_id, t1.product_id, t1.quantity
+            from o_order_product t1
+            left join o_order_info t2 on t1.order_id = t2.id
+            <where>
+                t2.order_status = '08'
+                <if test="date_time_begin != null">
+                    and t2.complete_time &gt;= #{date_time_begin}
+                </if>
+                <if test="date_time_end != null">
+                    and t2.complete_time &lt;= #{date_time_end}
+                </if>
+            </where>
+        ) data_table
+        <where>
+            <if test="party_id != null">
+                data_table.party_id = #{party_id}
+            </if>
+        </where>
+        GROUP BY data_table.party_id, data_table.product_id
+    </select>
+</mapper>

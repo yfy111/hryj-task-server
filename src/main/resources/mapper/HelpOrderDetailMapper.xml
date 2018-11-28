@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.HelpOrderDetailMapper">
+
+    <!-- 计算店长代下单分润 -->
+    <select id="calStoreManagerHelpOrderPorfit" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(phod.store_staff_order_profit),0) AS store_staff_order_profit
+        FROM
+            pr_help_order_detail phod
+        WHERE
+            phod.store_staff_id = #{staff_id}
+        AND phod.statis_date LIKE CONCAT(#{balance_month},'%')
+    </select>
+</mapper>

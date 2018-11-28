@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.StoreOrderStatisMapper">
+
+    <!-- 统计门店配送单数据 -->
+    <select id="statisStoreDistributionData" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(CASE WHEN ood.distribution_type='01' AND ood.distribution_status='03' THEN 1 END),0) as distribution_num,
+            IFNULL(SUM(CASE WHEN ood.distribution_type='02' AND ood.distribution_status='03' THEN 1 END),0) as take_back_num,
+            IFNULL(SUM(CASE WHEN ood.distribution_status='04' THEN 1 END),0) as timeout_distribution_num,
+            IFNULL(SUM(CASE WHEN ood.distribution_status='03' OR ood.distribution_status='04' THEN ood.distribution_amt END),0) AS distribution_cost
+        FROM
+            o_order_distribution ood,
+            o_order_info ooi
+        WHERE
+            ood.order_id = ooi.id
+        AND ooi.party_id = #{store_id}
+        AND DATE_FORMAT(ood.complete_time, '%Y-%m-%d') = #{statis_date}
+    </select>
+
+    <!-- 统计门店或仓库订单数据 -->
+    <select id="statisPartyOrderData" resultType="java.util.Map">
+        SELECT
+            COUNT(ooi.id) AS party_order_num,
+            IFNULL(SUM(ooi.pay_amt),0) AS party_order_amt,
+            IFNULL(SUM(ooi.order_profit),0) AS party_order_profit,
+            COUNT(DISTINCT CASE WHEN ooi.new_trade_flag=1 THEN ooi.user_id END) AS new_trade_user_num
+        FROM
+            o_order_info ooi
+        WHERE ooi.order_status = '08'
+        AND ooi.party_id = #{party_id}
+        AND DATE_FORMAT(ooi.complete_time, '%Y-%m-%d') = #{statis_date}
+    </select>
+
+    <!-- 统计门店或仓库订单商品数据 -->
+    <select id="statisPartyOrderProductData" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(oop.quantity),0) AS order_product_num
+        FROM
+            o_order_product oop,
+            o_order_info ooi
+        WHERE ooi.order_status = '08'
+        AND oop.order_id = ooi.id
+        AND	ooi.party_id = #{party_id}
+        AND DATE_FORMAT(ooi.complete_time, '%Y-%m-%d') = #{statis_date}
+    </select>
+
+    <!-- 统计代下单订单数据 -->
+    <select id="statisHelpOrderData" resultType="java.util.Map">
+        SELECT
+            COUNT(ooi.id) AS help_order_num,
+            IFNULL(SUM(ooi.pay_amt),0) AS help_order_amt
+        FROM
+            o_order_info ooi
+        WHERE ooi.order_status = '08'
+        AND ooi.help_store_id = #{party_id}
+        AND DATE_FORMAT(ooi.complete_time, '%Y-%m-%d') = #{statis_date}
+    </select>
+
+    <!-- 统计代下单商品数据 -->
+    <select id="statisHelpOrderProductData" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(oop.quantity),0) AS help_product_num
+        FROM
+            o_order_product oop, o_order_info ooi
+        WHERE oop.order_id = ooi.id
+        AND ooi.order_status = '08'
+        AND	ooi.help_store_id = #{party_id}
+        AND DATE_FORMAT(ooi.complete_time, '%Y-%m-%d') = #{statis_date}
+    </select>
+
+    <!-- 计算门店当月的配送成本 -->
+    <select id="calStoreMonthDistributionCost" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(psos.distribution_cost),0) AS store_distribution_cost
+        FROM
+            pr_store_order_statis psos
+        WHERE
+            psos.store_id = #{store_id}
+        AND psos.statis_date LIKE CONCAT(#{balance_month},'%')
+    </select>
+
+    <!-- 计算门店当天的配送成本 -->
+    <select id="calStoreDayDistributionCost" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(psos.distribution_cost),0) AS store_distribution_cost
+        FROM
+            pr_store_order_statis psos
+        WHERE
+            psos.store_id = #{store_id}
+        AND psos.statis_date = #{statis_date}
+    </select>
+
+</mapper>

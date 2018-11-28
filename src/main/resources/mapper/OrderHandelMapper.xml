@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.OrderHandelMapper">
+    <!-- 查询待支付订单列表 -->
+    <select id="findWaitPayOrderList" resultType="java.util.Map">
+        SELECT
+          ooi.id AS order_id
+        FROM
+          o_order_info ooi
+        WHERE
+          order_status = '01'
+        AND create_time &lt;= DATE_SUB(NOW(), INTERVAL 24 HOUR)
+    </select>
+
+    <!-- 查询订单商品列表 -->
+    <select id="findOrderProductList" resultType="java.util.Map">
+        SELECT
+            oop.id AS order_product_id,
+            oop.party_id,
+            oop.product_id,
+            oop.activity_id,
+            oop.quantity
+        FROM
+            o_order_product oop
+        WHERE
+            oop.order_id = #{order_id}
+    </select>
+
+    <!-- 查询完成超时的订单列表 -->
+    <select id="findCompleteTimeOutOrderList" resultType="com.hryj.entity.bo.order.OrderInfo">
+        SELECT
+          *
+        FROM
+          o_order_info ooi
+        WHERE
+            ooi.order_status = '04'
+        AND ooi.complete_time IS NULL
+        AND ooi.update_time &lt;= DATE_SUB(NOW(), INTERVAL 10 DAY)
+    </select>
+
+    <!-- 更新商品库存 -->
+    <update id="updatePartyProductStock">
+        UPDATE p_party_product SET inventory_quantity = (inventory_quantity + #{adjust_num}) WHERE party_id = #{party_id} AND product_id = #{product_id}
+    </update>
+
+    <!-- 更新订单商品表释放库存标识 -->
+    <update id="updateOrderProductStockReleaseFlag">
+        UPDATE o_order_product
+        SET stock_release_flag = 1
+        WHERE order_id = #{order_id}
+    </update>
+</mapper>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.StaffDeptChangeRecordMapper">
+
+    <!-- 查询当月的员工部门变动记录(转移成本未结算) -->
+    <select id="findStaffDeptChangeRecordList" resultType="com.hryj.entity.bo.profit.StaffDeptChangeRecord">
+        SELECT
+            *
+        FROM
+            pr_staff_dept_change_record psdcr
+        <where>
+            AND psdcr.balance_flag = 0
+            <if test="change_type !=null and change_type !=''">
+                AND change_type = #{change_type}
+            </if>
+            <if test="balance_month !=null and balance_month !=''">
+                AND DATE_FORMAT(psdcr.change_time, '%Y-%m') = #{balance_month}
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询员工的部门变动记录 -->
+    <select id="findStaffDeptChangeRecord" resultType="com.hryj.entity.bo.profit.StaffDeptChangeRecord">
+        SELECT
+            *
+        FROM
+            pr_staff_dept_change_record psdcr
+        WHERE
+            psdcr.staff_id = #{staff_id}
+        AND DATE_FORMAT(psdcr.change_time,'%Y-%m-%d') = #{change_date}
+        LIMIT 1
+    </select>
+</mapper>

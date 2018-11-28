@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.StaffCostDetailMapper">
+    <!-- 计算员工当月的成本总和 -->
+    <select id="calStaffMonthCost" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(store_salary_cost + store_fixed_cost + store_non_fixed_cost + store_distribution_cost + dept_salary_cost + dept_non_fixed_cost),0) AS month_cost
+        FROM
+            pr_staff_cost_detail pscd
+        WHERE
+                pscd.region_id = #{region_id}
+        AND pscd.store_id = #{store_id}
+        AND pscd.staff_id = #{staff_id}
+        AND pscd.cal_date LIKE CONCAT(#{balance_month},'%')
+    </select>
+</mapper>

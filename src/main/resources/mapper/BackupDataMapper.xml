@@ -1,0 +1,512 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.BackupDataMapper">
+
+    <insert id="backupDeptCostData">
+        INSERT INTO backup_dept_cost (
+            backup_month,
+            dept_id,
+            cost_name,
+            cost_amt,
+            data_status,
+            operator_id
+        ) SELECT
+            #{backup_month},
+            dept_id,
+            cost_name,
+            cost_amt,
+            data_status,
+            operator_id
+        FROM
+            sf_dept_cost
+    </insert>
+
+    <insert id="backupDeptShareConfig">
+        INSERT INTO backup_dept_share_config (
+            backup_month,
+            store_id,
+            dept_id,
+            staff_id,
+            share_ratio,
+            operator_id
+        ) SELECT
+            #{backup_month},
+            store_id,
+            dept_id,
+            staff_id,
+            share_ratio,
+            operator_id
+        FROM
+            sf_dept_share_config
+    </insert>
+
+    <insert id="backupDeptGroup">
+        INSERT INTO backup_dept_group (
+            backup_date,
+            dept_id,
+            dept_name,
+            dept_pid,
+            dept_level,
+            dept_type,
+            company_flag,
+            end_flag,
+            dept_path,
+            dept_status,
+            service_rule,
+            share_cost_flag,
+            operator_id
+        ) SELECT
+            #{backup_date},
+            sdg.id,
+            sdg.dept_name,
+            sdg.dept_pid,
+            sdg.dept_level,
+            sdg.dept_type,
+            sdg.company_flag,
+            sdg.end_flag,
+            sdg.dept_path,
+            sdg.dept_status,
+            ssi.service_rule,
+            ssi.share_cost_flag,
+            sdg.operator_id
+        FROM
+            sf_dept_group sdg LEFT JOIN sf_store_info ssi ON sdg.id = ssi.id
+    </insert>
+
+    <insert id="backupStaffDeptRelation">
+        INSERT INTO backup_staff_dept_relation (
+            backup_date,
+            staff_id,
+            staff_name,
+            dept_id,
+            dept_type,
+            dept_name,
+            dept_path,
+            staff_type,
+            staff_job,
+            salary_amt,
+            help_order_ratio,
+            service_ratio,
+            distribution_amt,
+            share_cost_ratio,
+            staff_status,
+            operator_id
+        ) SELECT
+            #{backup_date},
+            ssdr.staff_id,
+            ssui.staff_name,
+            ssdr.dept_id,
+            sdg.dept_type,
+            sdg.dept_name,
+            sdg.dept_path,
+            ssui.staff_type,
+            ssdr.staff_job,
+            ssdr.salary_amt,
+            ssdr.help_order_ratio,
+            ssdr.service_ratio,
+            ssdr.distribution_amt,
+            ssdr.share_cost_ratio,
+            ssdr.staff_status,
+            ssdr.operator_id
+        FROM
+            sf_staff_dept_relation ssdr,
+            sf_staff_user_info ssui,
+            sf_dept_group sdg
+        WHERE
+            ssdr.staff_id = ssui.id
+        AND ssdr.dept_id = sdg.id
+    </insert>
+
+    <!-- 根据门店id查询店长信息 -->
+    <select id="findStoreManagerByStoreId" resultType="com.hryj.entity.bo.profit.BackupStaffDeptRelation">
+        SELECT
+            *
+        FROM
+            backup_staff_dept_relation bsdr
+        WHERE
+            bsdr.staff_job = '01'
+        AND bsdr.staff_status = 1
+        AND bsdr.backup_date = #{backup_date}
+        AND bsdr.dept_id = #{store_id}
+        LIMIT 1
+    </select>
+
+    <!-- 查询员工当天的部门关系 -->
+    <select id="findStaffDeptRelationByStaffId" resultType="com.hryj.entity.bo.profit.BackupStaffDeptRelation">
+        SELECT
+            *
+        FROM
+            backup_staff_dept_relation bsdr
+        WHERE
+            bsdr.backup_date = #{backup_date}
+        AND bsdr.staff_id = #{staff_id}
+        LIMIT 1
+    </select>
+
+    <!-- 查询所有的仓库列表 -->
+    <select id="findAllWHList" resultType="java.util.Map">
+        SELECT
+            bdg.dept_id,
+            bdg.dept_name,
+            bdg.dept_path
+        FROM
+            backup_dept_group bdg
+        WHERE
+            bdg.dept_type ='02'
+        AND bdg.end_flag = 1
+        AND bdg.backup_date = #{backup_date}
+    </select>
+
+    <!-- 查询今天所有的仓库列表 -->
+    <select id="findTodayAllWHList" resultType="java.util.Map">
+        SELECT
+            sdg.id AS dept_id,
+            sdg.dept_name,
+            sdg.dept_path
+        FROM
+            sf_dept_group sdg
+        WHERE
+            sdg.dept_type ='02'
+        AND sdg.end_flag = 1
+    </select>
+
+    <!-- 查询所有的门店列表 -->
+    <select id="findAllStoreList" resultType="java.util.Map">
+        SELECT
+            bdg.dept_id,
+            bdg.dept_name,
+            bdg.dept_path
+        FROM
+            backup_dept_group bdg
+        WHERE
+            bdg.dept_type ='01'
+        AND bdg.end_flag = 1
+        AND bdg.backup_date = #{backup_date}
+    </select>
+
+    <!-- 查询今天所有的门店列表 -->
+    <select id="findTodayAllStoreList" resultType="java.util.Map">
+        SELECT
+            sdg.id AS dept_id,
+            sdg.dept_name,
+            sdg.dept_path
+        FROM
+            sf_dept_group sdg
+        WHERE
+            sdg.dept_type ='01'
+        AND sdg.end_flag = 1
+    </select>
+
+    <!-- 查询所有的门店和仓库员工 -->
+    <select id="findAllStaffList" resultType="java.util.Map">
+        SELECT
+            bsdr.staff_id,
+            bsdr.dept_id,
+            bsdr.dept_name,
+            bsdr.dept_path,
+            bsdr.staff_job,
+            bsdr.staff_status,
+            bsdr.help_order_ratio,
+            bsdr.service_ratio
+        FROM
+            backup_staff_dept_relation bsdr
+        WHERE  bsdr.staff_type = '01'
+        AND bsdr.dept_type IN('01','02')
+        AND bsdr.backup_date = #{backup_date}
+    </select>
+
+    <!-- 查询今天所有的门店和仓库员工 -->
+    <select id="findTodayAllStaffList" resultType="java.util.Map">
+        SELECT
+            ssdr.staff_id,
+            ssdr.dept_id,
+            sdg.dept_name,
+            sdg.dept_path,
+            ssdr.staff_job,
+            ssdr.staff_status,
+            ssdr.help_order_ratio,
+            ssdr.service_ratio
+        FROM
+            sf_staff_dept_relation ssdr, sf_dept_group sdg, sf_staff_user_info ssui
+        WHERE ssdr.dept_id = sdg.id
+        AND ssdr.staff_id = ssui.id
+        AND ssui.staff_type = '01'
+        AND sdg.dept_type IN('01','02')
+    </select>
+
+    <!-- 计算部门下员工数量 -->
+    <select id="countDeptStaffNum" resultType="java.lang.Long">
+        SELECT
+            COUNT(bsdr.id)
+        FROM
+            backup_staff_dept_relation bsdr
+        WHERE
+            bsdr.staff_status = 1
+        AND bsdr.dept_id = #{dept_id}
+        AND bsdr.backup_date = #{backup_date}
+    </select>
+
+    <!-- 计算部门下今天员工数量 -->
+    <select id="countDeptTodayStaffNum" resultType="java.lang.Long">
+        SELECT
+            COUNT(ssdr.id)
+        FROM
+            sf_staff_dept_relation ssdr
+        WHERE
+            ssdr.staff_status = 1
+        AND ssdr.dept_id = #{dept_id}
+    </select>
+
+    <!-- 查询当月所有区域公司列表 -->
+    <select id="findMonthRegionList" resultType="java.util.Map">
+        SELECT
+            dept_id,
+            dept_name,
+            dept_path
+        FROM
+            backup_dept_group bdg
+        WHERE
+            bdg.company_flag = 1
+        AND bdg.dept_status = 1
+        AND bdg.backup_date LIKE CONCAT(#{balance_month},'%')
+        GROUP BY dept_id
+    </select>
+
+    <!-- 查询当天所有区域公司列表 -->
+    <select id="findDayRegionList" resultType="java.util.Map">
+        SELECT
+            dept_id,
+            dept_name,
+            dept_path
+        FROM
+            backup_dept_group bdg
+        WHERE
+            bdg.company_flag = 1
+        AND bdg.dept_status = 1
+        AND bdg.backup_date = #{backup_date}
+        GROUP BY dept_id
+    </select>
+
+    <!-- 查询所有仓库列表 -->
+    <select id="findAllWHDeptList" resultType="java.util.Map">
+        SELECT
+            dept_id,
+            dept_name,
+            dept_path
+        FROM
+            backup_dept_group bdg
+        WHERE
+            bdg.dept_type = '02'
+        AND bdg.dept_status = 1
+        AND bdg.backup_date LIKE CONCAT(#{balance_month},'%')
+        GROUP BY dept_id
+    </select>
+
+    <!-- 查询区域公司当天的员工列表 -->
+    <select id="findRegionDayStaffList" resultType="com.hryj.entity.bo.profit.BackupStaffDeptRelation">
+        SELECT
+            bsdr.*
+        FROM
+            backup_staff_dept_relation bsdr
+        <where>
+            AND bsdr.staff_status = 1
+            AND bsdr.staff_type = '01'
+            <if test="backup_date !=null and backup_date !=''">
+                AND bsdr.backup_date = #{backup_date}
+            </if>
+            <if test="dept_path !=null and dept_path !=''">
+                AND bsdr.dept_path LIKE CONCAT(#{dept_path},'%')
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询区域公司当月的员工列表 -->
+    <select id="findRegionMonthStaffList" resultType="com.hryj.entity.bo.profit.BackupStaffDeptRelation">
+        SELECT
+            bsdr.dept_id,
+            bsdr.dept_name,
+            bsdr.dept_path,
+            bsdr.staff_id,
+            bsdr.staff_name,
+            bsdr.staff_job
+        FROM
+          backup_staff_dept_relation bsdr
+        <if test="dept_path !=null and dept_path !=''">
+            RIGHT JOIN (
+            SELECT bdg.dept_id AS dept_id FROM backup_dept_group bdg
+            WHERE bdg.dept_path LIKE CONCAT(#{dept_path},'%')
+            <if test="balance_month !=null and balance_month !=''">
+                AND bdg.backup_date LIKE CONCAT(#{balance_month},'%')
+            </if>
+            ) T ON bsdr.dept_id = T.dept_id
+        </if>
+        <where>
+            AND bsdr.staff_status = 1
+            AND bsdr.staff_type = '01'
+            <if test="dept_type !=null and dept_type !=''">
+                AND bsdr.dept_type = #{dept_type}
+            </if>
+            <if test="balance_month !=null and balance_month !=''">
+                AND bsdr.backup_date LIKE CONCAT(#{balance_month},'%')
+            </if>
+        </where>
+        GROUP BY bsdr.dept_id,bsdr.staff_id
+    </select>
+
+    <!-- 查询门店当天的员工列表 -->
+    <select id="findStoreDayStaffList" resultType="com.hryj.entity.bo.profit.BackupStaffDeptRelation">
+        SELECT
+            *
+        FROM
+            backup_staff_dept_relation bsdr
+        <where>
+            AND bsdr.staff_status = 1
+            AND bsdr.staff_type = '01'
+            <if test="store_id !=null and store_id !=''">
+                AND bsdr.dept_id = #{store_id}
+            </if>
+            <if test="backup_date !=null and backup_date !=''">
+                AND bsdr.backup_date = #{backup_date}
+            </if>
+        </where>
+    </select>
+
+    <!-- 查询区域公司当天的分摊成本的门店列表 -->
+    <select id="findRegionDayStoreList" resultType="com.hryj.entity.bo.profit.BackupDeptGroup">
+        SELECT
+            *
+        FROM
+            backup_dept_group bdg
+        WHERE
+            bdg.dept_type = '01'
+        AND bdg.dept_status = 1
+        AND bdg.share_cost_flag = 1
+        <if test="backup_date !=null and backup_date !=''">
+            AND bdg.backup_date = #{backup_date}
+        </if>
+        <if test="dept_path !=null and dept_path !=''">
+            AND bdg.dept_path LIKE CONCAT(#{dept_path},'%')
+        </if>
+    </select>
+
+    <!-- 查询区域公司当月的门店列表 -->
+    <select id="findRegionMonthStoreList" resultType="com.hryj.entity.bo.profit.BackupDeptGroup">
+        SELECT
+            bdg.dept_id,
+            bdg.dept_name,
+            bdg.dept_path
+        FROM
+            backup_dept_group bdg
+        WHERE
+            bdg.dept_type = '01'
+        AND bdg.dept_status = 1
+        <if test="balance_month !=null and balance_month !=''">
+            AND bdg.backup_date LIKE CONCAT(#{balance_month},'%')
+        </if>
+        <if test="dept_path !=null and dept_path !=''">
+            AND bdg.dept_path LIKE CONCAT(#{dept_path},'%')
+        </if>
+        GROUP BY bdg.dept_id
+    </select>
+
+    <!-- 计算部门的固定成本 -->
+    <select id="calDeptFixedCost" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(bdc.cost_amt),0) AS store_fixed_cost
+        FROM
+            backup_dept_cost bdc
+        WHERE
+            bdc.data_status = 1
+        AND bdc.backup_month = #{backup_month}
+        AND bdc.dept_id = #{dept_id}
+    </select>
+
+    <!-- 计算部门当月的实际天数 -->
+    <select id="countOpenDays" resultType="java.util.Map">
+        SELECT
+            count(bdg.dept_id) AS open_days
+        FROM
+            backup_dept_group bdg
+        WHERE
+            bdg.dept_status = 1
+        AND bdg.dept_id = #{dept_id}
+        AND bdg.backup_date LIKE CONCAT(#{balance_month},'%')
+    </select>
+
+    <!-- 查询当月第一条备份 -->
+    <select id="findMonthFirstBackupDeptGroup" resultType="com.hryj.entity.bo.profit.BackupDeptGroup">
+        SELECT
+            *
+        FROM
+            backup_dept_group bdg
+        WHERE
+            bdg.dept_status = 1
+        AND bdg.dept_id = #{dept_id}
+        AND bdg.backup_date LIKE CONCAT(#{balance_month},'%')
+        ORDER BY bdg.backup_date ASC
+        LIMIT 1
+    </select>
+
+    <!-- 查询部门分润配置表 -->
+    <select id="findDeptShareConfigList" resultType="com.hryj.entity.bo.profit.BackupDeptShareConfig">
+        SELECT
+            *
+        FROM
+            backup_dept_share_config bdsc
+        WHERE
+            bdsc.store_id = #{store_id}
+        AND bdsc.backup_month = #{backup_month}
+    </select>
+
+    <!-- 查询部门组织备份 -->
+    <select id="findBackupDeptGroup" resultType="com.hryj.entity.bo.profit.BackupDeptGroup">
+        SELECT
+            *
+        FROM
+            backup_dept_group bdg
+        WHERE
+            bdg.dept_id = #{dept_id}
+        AND bdg.backup_date = #{backup_date}
+        LIMIT 1
+    </select>
+
+    <!-- 查询所有的门店和仓库列表 -->
+    <select id="findAllStoreAndWhList" resultType="com.hryj.entity.bo.staff.dept.DeptGroup">
+        SELECT
+            *
+        FROM
+            sf_dept_group sdg
+        WHERE
+            sdg.dept_type IN ('01','02')
+        AND sdg.end_flag = 1
+    </select>
+
+    <!-- 查询最新的部门分润配置表 -->
+    <select id="findLatestShareConfigList" resultType="com.hryj.entity.bo.staff.dept.DeptShareConfig">
+        SELECT
+            *
+        FROM
+            sf_dept_share_config sdsc
+        WHERE
+            sdsc.store_id = #{party_id}
+    </select>
+
+    <!-- 根据id查询部门组织 -->
+    <select id="getDeptGroupById" resultType="com.hryj.entity.bo.staff.dept.DeptGroup">
+        SELECT
+            *
+        FROM
+            sf_dept_group sdg
+        WHERE id = #{dept_id}
+    </select>
+
+    <!-- 根据门店id获取门店信息 -->
+    <select id="getStoreInfoById" resultType="com.hryj.entity.bo.staff.store.StoreInfo">
+        SELECT
+            *
+        FROM
+            sf_store_info ssi
+        WHERE id = #{store_id}
+    </select>
+
+</mapper>

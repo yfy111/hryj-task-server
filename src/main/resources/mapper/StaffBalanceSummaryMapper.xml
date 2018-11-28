@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.StaffBalanceSummaryMapper">
+
+    <!-- 查询员工结算汇总表 -->
+    <select id="findStaffBalanceSummary" resultType="com.hryj.entity.bo.profit.StaffBalanceSummary">
+        SELECT
+            *
+        FROM
+            pr_staff_balance_summary psbs
+        WHERE
+            psbs.balance_month = #{balance_month}
+        AND psbs.region_id = #{region_id}
+        AND psbs.staff_id = #{staff_id}
+        LIMIT 1
+    </select>
+</mapper>

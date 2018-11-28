@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.PartyGrossProfitStatisMapper">
+
+    <!-- 统计门店或仓库的毛利 -->
+    <select id="statisPartyGrossProfit" resultType="java.util.Map">
+        SELECT
+            SUM(T.total_gross_profit) AS total_gross_profit
+        FROM
+        (
+            SELECT
+                IFNULL(SUM(ooi.order_profit), 0) AS total_gross_profit
+            FROM
+                o_order_info ooi
+            WHERE
+                ooi.order_status = '08'
+            AND DATE_FORMAT(ooi.complete_time, '%Y-%m') = #{statis_month}
+            AND ooi.party_id = #{party_id}
+            AND ooi.help_store_id IS NULL
+        UNION
+            SELECT
+                IFNULL(SUM(ooi.order_profit), 0) AS total_gross_profit
+            FROM
+                o_order_info ooi
+            WHERE
+                ooi.order_status = '08'
+            AND DATE_FORMAT(ooi.complete_time, '%Y-%m') = #{statis_month}
+            AND ooi.help_store_id = #{party_id}
+        ) T
+    </select>
+</mapper>

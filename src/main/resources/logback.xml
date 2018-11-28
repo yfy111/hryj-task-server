@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true">
+	<include resource="org/springframework/boot/logging/logback/base.xml" />
+	<property name="logPath" value="logs" />
+	<property name="logName" value="task-server" />
+	<property name="logLevel" value="info" />
+	<property name="consolePattern" value="%yellow(%d{yyyy-MM-dd HH:mm:ss.SSS}) |%green(%thread) |%blue(%-5level) |%green(%logger) |%magenta(%M) |%magenta(%line) |%cyan(%msg%n)"/>
+	<property name="filePattern" value="%d{yyyy-MM-dd HH:mm:ss.SSS} |%thread |%-5level |%logger |%M |%line |%msg%n"/>
+
+	<!-- 控制台输出 -->
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>${consolePattern}</pattern>
+		</encoder>
+	</appender>
+	<!-- 按照每天生成日志文件 -->
+	<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<!--日志文件输出的文件名-->
+			<FileNamePattern>${logPath}/${logName}.%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+			<!-- 单个日志文件最多10MB, 10天的日志周期，最大不能超过10GB -->
+			<MaxHistory>10</MaxHistory>
+			<maxFileSize>10MB</maxFileSize>
+			<totalSizeCap>10GB</totalSizeCap>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<pattern>${filePattern}</pattern>
+		</encoder>
+	</appender>
+	<root level="${logLevel}">
+		<appender-ref ref="STDOUT" />
+		<appender-ref ref="FILE" />
+	</root>
+</configuration>

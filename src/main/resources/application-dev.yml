@@ -1,0 +1,44 @@
+email:
+    send:
+        exception: false
+eureka:
+    instance:
+        hostname: localhost
+        prefer-ip-address: true
+        instance-id: ${spring.cloud.client.ipAddress}:${server.port}
+        lease-renewal-interval-in-seconds: 5
+        lease-expiration-duration-in-seconds: 10
+    client:
+        service-url:
+            defaultZone: http://${security.user.name}:${security.user.password}@${eureka.instance.hostname}:8761/eureka/
+        registry-fetch-interval-seconds: 5
+        healthcheck:
+            enabled: true
+spring:
+    datasource:
+        type: com.alibaba.druid.pool.DruidDataSource
+        url: jdbc:mysql://192.168.50.208:3306/hryj?allowMultiQueries=true&characterEncoding=utf8&useSSL=false
+        username: root
+        password: HongRui@!123
+        driver-class-name: com.mysql.jdbc.Driver
+        sql-script-encoding: utf-8
+        druid:
+            initial-size: 5
+            min-idle: 5
+            max-active: 100
+            max-wait: 60000
+            time-between-eviction-runs-millis: 60000
+            min-evictable-idle-time-millis: 300000
+            validation-query: SELECT 1 FROM DUAL
+            test-while-idle: true
+            test-on-borrow: false
+            test-on-return: false
+            pool-prepared-statements: true
+            max-pool-prepared-statement-per-connection-size: 20
+            filters: stat,wall,log4j
+            connection-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    redis:
+        host: 192.168.50.208
+        port: 6379
+        password: hryj_2018
+        timeout: 10000

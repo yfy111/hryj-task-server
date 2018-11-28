@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.WhProfitDetailMapper">
+
+    <!-- 计算仓库部门分润 -->
+    <select id="calWHDeptProfit" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(pwpd.profit_amt),0) AS dept_profit_amt
+        FROM
+            pr_wh_profit_detail pwpd
+        WHERE
+            pwpd.dept_id = #{dept_id}
+        AND pwpd.profit_month = #{balance_month}
+    </select>
+</mapper>

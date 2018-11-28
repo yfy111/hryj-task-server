@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.WhOrderStatisMapper">
+
+    <!-- 计算仓库当月的分润 -->
+    <select id="calWHMonthProfit" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(pwos.wh_order_profit),0) AS wh_order_profit
+        FROM
+            pr_wh_order_statis pwos
+        WHERE
+            pwos.wh_id = #{wh_id}
+        AND pwos.statis_date LIKE CONCAT(#{balance_month},'%')
+    </select>
+</mapper>

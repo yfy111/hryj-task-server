@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.RegionProfitDetailMapper">
+
+    <!-- 计算区域公司结算分润 -->
+    <select id="calRegionBalanceProfit" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(prpd.profit_amt),0) AS dept_actual_profit
+        FROM
+            pr_region_profit_detail prpd
+        WHERE
+            prpd.region_id = #{region_id}
+        AND prpd.profit_month = #{balance_month}
+        AND prpd.dept_id = #{dept_id}
+        AND prpd.dept_staff_id = #{staff_id}
+    </select>
+
+    <!-- 计算集团门店结算分润 -->
+    <select id="calGroupBalanceProfit" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(prpd.profit_amt),0) AS dept_actual_profit
+        FROM
+            pr_region_profit_detail prpd
+        WHERE
+            prpd.profit_month = #{balance_month}
+        AND prpd.dept_id = #{dept_id}
+    </select>
+</mapper>

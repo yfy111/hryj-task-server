@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.StoreDeuceRegionCostMapper">
+
+    <!-- 计算门店当月平摊区域公司的成本总和 -->
+    <select id="calStoreRegionMonthCost" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(psdrc.dept_salary_cost),0) AS store_region_salary_cost,
+            IFNULL(SUM(psdrc.dept_non_fixed_cost),0) AS store_region_non_fixed_cost
+        FROM
+            pr_store_deuce_region_cost psdrc
+        WHERE psdrc.store_id = #{store_id}
+        AND psdrc.cal_date LIKE CONCAT(#{balance_month},'%')
+    </select>
+
+    <!-- 计算门店当天平摊的区域公司成本 -->
+    <select id="findStoreDeuceRegionCost" resultType="com.hryj.entity.bo.profit.StoreDeuceRegionCost">
+        SELECT
+            *
+        FROM
+            pr_store_deuce_region_cost psdrc
+        WHERE
+            psdrc.store_id = #{store_id}
+        AND psdrc.region_id = #{region_id}
+        AND psdrc.cal_date = #{cal_date}
+    </select>
+</mapper>

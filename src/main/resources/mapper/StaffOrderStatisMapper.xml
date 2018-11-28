@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hryj.mapper.StaffOrderStatisMapper">
+
+    <!-- 查询员工代下单订单数据 -->
+    <select id="findHelpOrderList" resultType="java.util.Map">
+        SELECT
+            ooi.id AS order_id,
+            ooi.party_id,
+            ooi.help_store_id,
+            ooi.pay_amt,
+            DATE_FORMAT(ooi.pay_time,'%Y-%m-%d') AS pay_date,
+            ooi.order_profit
+        FROM
+            o_order_info ooi
+        WHERE
+            ooi.order_status = '08'
+        AND ooi.help_staff_id = #{staff_id}
+        AND DATE_FORMAT(ooi.complete_time, '%Y-%m-%d') = #{statis_date}
+    </select>
+
+    <!-- 查询订单商品数据 -->
+    <select id="findOrderProductData" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(oop.quantity),0) AS product_num
+        FROM
+            o_order_product oop
+        WHERE
+            oop.order_id = #{order_id}
+    </select>
+
+    <!-- 统计员工配送单数据 -->
+    <select id="statisStaffDistributionData" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(CASE WHEN ood.distribution_type='01' AND ood.distribution_status='03' THEN 1 END),0) as distribution_num,
+            IFNULL(SUM(CASE WHEN ood.distribution_type='02' AND ood.distribution_status='03' THEN 1 END),0) as take_back_num,
+            IFNULL(SUM(CASE WHEN ood.distribution_status='04' THEN 1 END),0) as timeout_distribution_num,
+            IFNULL(SUM(CASE WHEN ood.distribution_status='03' OR ood.distribution_status='04' THEN ood.distribution_amt END),0) AS distribution_profit
+        FROM
+            o_order_distribution ood
+        WHERE ood.distribution_staff_id = #{staff_id}
+        AND DATE_FORMAT(ood.complete_time, '%Y-%m-%d') = #{statis_date}
+    </select>
+
+    <!-- 计算员工当月的分润 -->
+    <select id="calStaffMonthProfit" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(psos.service_profit),0) AS service_profit,
+            IFNULL(SUM(psos.help_order_profit),0) AS help_order_profit,
+            IFNULL(SUM(psos.distribution_profit),0) AS distribution_profit,
+            IFNULL(SUM(psos.distribution_num+psos.take_back_num+psos.timeout_distribution_num),0) AS distribution_num
+        FROM
+            pr_staff_order_statis psos
+        WHERE
+            psos.staff_id = #{staff_id}
+        AND psos.statis_date LIKE CONCAT(#{balance_month},'%')
+    </select>
+
+    <!-- 统计服务订单毛利 -->
+    <select id="statisServiceOrderProfit" resultType="java.util.Map">
+        SELECT
+            IFNULL(SUM(ooi.order_profit),0) AS order_profit
+        FROM
+            o_order_info ooi
+        WHERE
+            ooi.order_status = '08'
+        AND ooi.help_store_id IS NULL
+        AND ooi.party_id = #{party_id}
+        AND DATE_FORMAT(ooi.complete_time,'%Y-%m-%d') = #{statis_date}
+    </select>
+</mapper>

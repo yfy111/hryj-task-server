@@ -1,0 +1,43 @@
+email:
+    send:
+        exception: true
+eureka:
+    instance:
+        prefer-ip-address: true
+        instance-id: ${spring.cloud.client.ipAddress}:${server.port}
+        lease-renewal-interval-in-seconds: 30
+        lease-expiration-duration-in-seconds: 60
+    client:
+        service-url:
+            defaultZone: http://${security.user.name}:${security.user.password}@server1:8761/eureka/,http://${security.user.name}:${security.user.password}@server2:8762/eureka/,http://${security.user.name}:${security.user.password}@server3:8763/eureka/
+        registry-fetch-interval-seconds: 30
+        healthcheck:
+            enabled: true
+spring:
+    datasource:
+        type: com.alibaba.druid.pool.DruidDataSource
+        url: jdbc:mysql://rm-wz951lov2j2135978.mysql.rds.aliyuncs.com:3306/hryj_db?allowMultiQueries=true&characterEncoding=utf8&useSSL=false
+        username: hryj_db
+        password: HrYJ@12%3!@TsY9s6dk
+        driver-class-name: com.mysql.jdbc.Driver
+        sql-script-encoding: utf-8
+        druid:
+            initial-size: 5
+            min-idle: 5
+            max-active: 100
+            max-wait: 60000
+            time-between-eviction-runs-millis: 60000
+            min-evictable-idle-time-millis: 300000
+            validation-query: SELECT 1 FROM DUAL
+            test-while-idle: true
+            test-on-borrow: false
+            test-on-return: false
+            pool-prepared-statements: true
+            max-pool-prepared-statement-per-connection-size: 20
+            filters: stat,wall,log4j
+            connection-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+    redis:
+        host: r-wz9f3838259a2dc4.redis.rds.aliyuncs.com
+        port: 6379
+        password: HrYj3w4H@31BdasS4Dt3S
+        timeout: 10000
